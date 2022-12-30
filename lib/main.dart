@@ -4,6 +4,9 @@ import 'package:mqtt_client/mqtt_client.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 import 'mqtt_client.dart';
+import 'package:vibration/vibration.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+
 
 void main() {
   runApp(const MyApp());
@@ -37,7 +40,7 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   late MqttClient client;
   var topic = "minion/childsectiondata";
 
@@ -46,34 +49,70 @@ class _MyHomePageState extends State<MyHomePage> {
     builder.addString('Hello from flutter_client');
     client.publishMessage(topic, MqttQos.atLeastOnce, builder.payload);
   }
-  var data='';
-  void alert(){
-    if(data=='200'){
-      showAlertDialog(BuildContext context) {
-        // set up the button
-        Widget okButton = TextButton(
-          child: Text("OK"),
-          onPressed: () { },
-        );
 
-        // set up the AlertDialog
-        AlertDialog alert = AlertDialog(
-          title: Text("Minion"),
-          content: Text("Connected"),
-          actions: [
-            okButton,
-          ],
-        );
-        // show the dialog
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return alert;
-          },
-        );
+    @override
+  initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+
+    super.dispose();
+  }
+  bool disconnect=true;
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+
+    if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.detached) return;
+
+    final isBackground = state == AppLifecycleState.paused;
+
+    if (isBackground) {
+      while(disconnect){
+      if(data=='500'){
+        Vibration.vibrate(duration: 3000);
       }
+      if(data=='300'){
+        Vibration.cancel();
+      }
+      }
+      
     }
   }
+  var data='';
+  void alert(){
+     Fluttertoast.showToast(
+        msg: "connected",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.CENTER,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.black,
+        textColor: Colors.white,
+        fontSize: 16.0
+    );
+  }
+
+  void stopalert(){
+      disconnect=false;
+
+      Fluttertoast.showToast(
+      msg: "disconnected",
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.CENTER,
+      timeInSecForIosWeb: 1,
+      backgroundColor: Colors.black,
+      textColor: Colors.white,
+      fontSize: 16.0
+    );
+
+  }
+        
   Future<MqttClient> connect() async {
     MqttServerClient client =
     MqttServerClient.withPort('broker.emqx.io', 'flutter_client', 1883);
@@ -175,16 +214,23 @@ class _MyHomePageState extends State<MyHomePage> {
             Container(
               margin:const EdgeInsets.all(20),
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   ElevatedButton(
-                    child: const Text('Connect',style: TextStyle(fontSize:20),),
+                    child: const Text('connect',style: TextStyle(fontSize:20),),
                     onPressed: () => {
                       connect().then((value) {
                         client = value;
                         client.subscribe(topic, MqttQos.atLeastOnce);
                         alert();
-
                       })
+                    },
+                  ),
+
+                  ElevatedButton(
+                    child: const Text('disconnect',style: TextStyle(fontSize:20),),
+                    onPressed: () => {
+                         stopalert()
                     },
                   ),
                 ],
@@ -272,6 +318,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver{
         client.unsubscribe(topic);
         client.disconnect();
       });
+      
     }
   }
 

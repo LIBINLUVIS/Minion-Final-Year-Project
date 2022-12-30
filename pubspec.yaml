@@ -38,6 +38,11 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
   mqtt_client: ^8.0.0
+  vibration: ^1.7.6
+  fluttertoast: ^8.1.2
+  
+  
+  
 
 
 
@@ -68,8 +73,8 @@ flutter:
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
-#   assets:
-#     - assets/audio/
+  assets:
+    - assets/
 
 
   # An image asset can refer to one or more resolution-specific "variants", see
