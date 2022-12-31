@@ -76,18 +76,20 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     
     if (isBackground) {
       client.disconnect();
+      if(disconnect){
       connect().then((value) {
       client = value;
       client.subscribe(topic, MqttQos.atLeastOnce);        
       });
+      }
       Timer mytimer = Timer.periodic(Duration(seconds: 3), (timer) {
         if(data=='300'){
-          print('hello');
+       //   print('hello');
         }else{
-          print('heyy you');
+       //   print('heyy you');
         }
         if(data=='500'){
-          print('hello world ....................................................');
+        //  print('hello world ....................................................');
           Vibration.vibrate(duration: 1000);
         }
 
