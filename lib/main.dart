@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Minion',
       // theme: ThemeData(
       //   primarySwatch: Colors.,
       // ),
@@ -72,17 +72,16 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
         state == AppLifecycleState.detached) return;
 
     final isBackground = state == AppLifecycleState.paused;
-
+    
     if (isBackground) {
       while(disconnect){
-      if(data=='500'){
-        Vibration.vibrate(duration: 3000);
-      }
-      if(data=='300'){
-        Vibration.cancel();
-      }
+      
+        if(data=='500'){
+        Vibration.vibrate(duration: 1000);
+        print('vibration starts');
       }
       
+      }
     }
   }
   var data='';
@@ -90,7 +89,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
      Fluttertoast.showToast(
         msg: "connected",
         toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.CENTER,
+        gravity: ToastGravity.BOTTOM,
         timeInSecForIosWeb: 1,
         backgroundColor: Colors.black,
         textColor: Colors.white,
@@ -100,11 +99,15 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
 
   void stopalert(){
       disconnect=false;
-
+      client.unsubscribe(topic);
+      client.disconnect();
+      setState(() {
+        data='';
+      });
       Fluttertoast.showToast(
       msg: "disconnected",
       toastLength: Toast.LENGTH_SHORT,
-      gravity: ToastGravity.CENTER,
+      gravity: ToastGravity.BOTTOM,
       timeInSecForIosWeb: 1,
       backgroundColor: Colors.black,
       textColor: Colors.white,
@@ -312,14 +315,14 @@ class _HomeState extends State<Home> with WidgetsBindingObserver{
 
     final isBackground = state == AppLifecycleState.paused;
 
-    if (isBackground) {
-      connect().then((value) {
-        client = value;
-        client.unsubscribe(topic);
-        client.disconnect();
-      });
+    // if (isBackground) {
+    //   connect().then((value) {
+    //     client = value;
+    //     client.unsubscribe(topic);
+    //     client.disconnect();
+    //   });
       
-    }
+    // }
   }
 
   @override
