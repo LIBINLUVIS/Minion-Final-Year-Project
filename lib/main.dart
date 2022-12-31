@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:flutter/src/widgets/framework.dart';
@@ -74,14 +75,24 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     final isBackground = state == AppLifecycleState.paused;
     
     if (isBackground) {
-      while(disconnect){
-      
+      client.disconnect();
+      connect().then((value) {
+      client = value;
+      client.subscribe(topic, MqttQos.atLeastOnce);        
+      });
+      Timer mytimer = Timer.periodic(Duration(seconds: 3), (timer) {
+        if(data=='300'){
+          print('hello');
+        }else{
+          print('heyy you');
+        }
         if(data=='500'){
-        Vibration.vibrate(duration: 1000);
-        print('vibration starts');
-      }
+          print('hello world ....................................................');
+          Vibration.vibrate(duration: 1000);
+        }
+
+      });
       
-      }
     }
   }
   var data='';
@@ -251,7 +262,8 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                   size: 150,
                 ):const Text(''),
                 data=='300'?
-                const Text("Safe distance",style: TextStyle(fontSize: 20,color: Color(0xFF10A19D)),):
+                const Text("Safe distance",style: TextStyle(fontSize: 20,color: Color(0xFF10A19D)),)
+                :
                 const Text(""),
 
                 data=='500'?
