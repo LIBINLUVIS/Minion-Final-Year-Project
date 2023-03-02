@@ -1,16 +1,22 @@
+import 'dart:ffi';
 import 'dart:io';
 import 'dart:async';
+import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 import 'mqtt_client.dart';
 import 'package:vibration/vibration.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:firebase_database/firebase_database.dart';
 
 
-void main() {
-  runApp(const MyApp());
+void main() async{
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -32,7 +38,7 @@ class MyApp extends StatelessWidget {
   }
 }
 
-
+const List<String> list = <String>['One', 'Indoor Mode', 'Outdoor Mode'];
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key,required this.title});
   final String title;
@@ -44,11 +50,17 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   late MqttClient client;
   var topic = "minion/childsectiondata";
+  var topic1="minion/thresholdvalues";
 
   void _publish(String message) {
     final builder = MqttClientPayloadBuilder();
-    builder.addString('Hello from flutter_client');
-    client.publishMessage(topic, MqttQos.atLeastOnce, builder.payload);
+    builder.addString("hello");
+      connect().then((value) {
+      client = value;
+      client.publishMessage(topic1, MqttQos.atLeastOnce, builder.payload);
+      client.subscribe(topic1, MqttQos.atLeastOnce);  
+      });
+    
   }
 
     @override
@@ -128,6 +140,10 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     );
 
   }
+
+ 
+
+
         
   Future<MqttClient> connect() async {
     MqttServerClient client =
@@ -173,10 +189,13 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
 
       });
 
+
+
       client.published.listen((MqttPublishMessage message) {
         print('published');
         final payload =
         MqttPublishPayload.bytesToStringAsString(message.payload.message);
+
         print(
             'Published message: $payload to topic: ${message.variableHeader.topicName}');
       });
@@ -189,6 +208,8 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
 
     return client;
   }
+
+
 
   void onConnected() {
     print('Connected');
@@ -213,6 +234,15 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   void pong() {
     print('Ping response client callback invoked');
   }
+  void getrange(String message){
+    final builder = MqttClientPayloadBuilder();
+    builder.addString("-40");
+      connect().then((value) {
+      client = value;
+      client.publishMessage(topic1, MqttQos.atLeastOnce, builder.payload);
+      client.subscribe(topic1, MqttQos.atLeastOnce);  
+      });
+  }
 
 
   @override
@@ -222,10 +252,27 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
         title: Text(widget.title),
       ),
       body: Center(
+      
         child: Column(
           children:[
             const SizedBox(height: 30,width: 20,),
-            const Text("Child status",style: TextStyle(fontSize: 30,color: Color(0xFF10A19D))),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text("Child status",style: TextStyle(fontSize: 30,color: Color(0xFF10A19D))),
+                const SizedBox(height: 20,width: 10,),
+                InkWell(
+                 child: Icon(
+                  Icons.settings
+                 ),
+                 onTap: (){
+      //action code when clicked
+                  Navigator.push(context, MaterialPageRoute(builder:(context)=>const SettingsPage() ));
+               }
+                )
+              ],
+            ),
+      
             const SizedBox(height: 20,width: 20,),
             Container(
               margin:const EdgeInsets.all(20),
@@ -305,7 +352,7 @@ class Home extends StatefulWidget{
 
 class _HomeState extends State<Home> with WidgetsBindingObserver{
   late MqttClient client;
-  var topic = "minion/childsectiondata";
+  var topic = "libin123";
   @override
   initState() {
     super.initState();
@@ -370,6 +417,220 @@ class _HomeState extends State<Home> with WidgetsBindingObserver{
   }
 }
 
+// setting up the threshold value
 
+class SettingsPage extends StatefulWidget {
+  const SettingsPage({super.key});
+
+  @override
+  State<SettingsPage> createState() => _SettingsPageState();
+}
+
+String selectedoption="";
+
+class _SettingsPageState extends State<SettingsPage> {
+   
+   int thre_range=0;
+   void incrange(){
+     setState(() {
+       if(thre_range<=20){
+         thre_range+=10;
+       }   
+     });
+    }
+   void decrange(){
+     setState(() {
+       if(thre_range>=1){
+         thre_range-=10;
+       }
+     });
+    }
+
+   void customrangeupdate()async{
+     if(thre_range==0){
+      Fluttertoast.showToast(
+      msg: "Please select a value",
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+      timeInSecForIosWeb: 2,
+      backgroundColor: Colors.black,
+      textColor: Colors.white,
+      fontSize: 16.0
+    );
+     }
+     if(thre_range==10){
+       var k=100;   
+       DatabaseReference ref1 = FirebaseDatabase.instance.ref("todos/$k");
+       await ref1.update({
+      "Threshold": -55,
+      
+    });
+     }
+     if(thre_range==20){
+      var k=100;   
+       DatabaseReference ref1 = FirebaseDatabase.instance.ref("todos/$k");
+       await ref1.update({
+      "Threshold": -65,
+      
+    });
+     }
+     if(thre_range==30){
+      var k=100;   
+       DatabaseReference ref1 = FirebaseDatabase.instance.ref("todos/$k");
+       await ref1.update({
+      "Threshold": -90,
+      
+    });
+     }
+   }
+  
+   update(res) async{
+  // print(res); 
+   var k=100;   
+   DatabaseReference ref1 = FirebaseDatabase.instance.ref("todos/$k");
+  
+   
+   if(res==""){
+      Fluttertoast.showToast(
+      msg: "Please select a mode",
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+      timeInSecForIosWeb: 2,
+      backgroundColor: Colors.black,
+      textColor: Colors.white,
+      fontSize: 16.0
+    );
+    }
+
+   if(res=="Indoor Mode"){
+    await ref1.update({
+      "Threshold": -60,
+      
+    });
+   }
+   if(res=="Outdoor Mode"){
+    await ref1.update({
+      "Threshold": -80,
+    });
+   }
+}
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Minion"),
+      ),
+
+      body: Center(child: Column(
+        children: [
+          const SizedBox(height: 30,width:30),
+          const Text("Select the mode",style: TextStyle(fontSize: 25,color: Color(0xFF10A19D)),),
+          SizedBox(height: 120,width:40),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              DropdownButtonExample(),
+              ElevatedButton(onPressed: (){
+                update(selectedoption);
+              }, child:Text("save",style: TextStyle(color:Color.fromARGB(255, 230, 236, 237),fontSize: 20 ),))
+            ],
+          ),
+          SizedBox(height: 110,width:20),
+          Text("Custom range",style: TextStyle(fontSize: 25,color:Color(0xFF10A19D)),),
+          SizedBox(height: 50,width: 20,),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+                InkWell(
+                 child: Icon(
+                  Icons.add_sharp
+                 ),
+                 onTap: (){
+  
+                  incrange();
+               }
+                ),
+              SizedBox(height: 0,width: 30,),
+              Text(thre_range.toString(),style: TextStyle(fontSize: 35),),
+              SizedBox(height: 0,width: 30,),
+              InkWell(
+                 child: Icon(
+                  Icons.minimize_sharp
+                 ),
+                 onTap: (){
+      //action code when clicked
+                  decrange();
+               }
+                )
+            ],
+          ),
+         SizedBox(height: 30,),
+         SizedBox(
+          height: 30,
+          width: 150,
+          child: ElevatedButton(onPressed: (){
+            customrangeupdate();
+          }, child:Text("save",style: TextStyle(fontSize: 20),))
+         ),
+         
+        ],
+      ),
+
+      ),
+
+    );
+  }
+}
+
+
+
+
+
+//dropdown widget
+class DropdownButtonExample extends StatefulWidget {
+  
+  const DropdownButtonExample({super.key});
+  
+
+  @override
+  State<DropdownButtonExample> createState() => _DropdownButtonExampleState();
+  
+}
+
+class _DropdownButtonExampleState extends State<DropdownButtonExample> {
+  
+  String dropdownValue = list.first;
+  
+  
+
+  @override
+  Widget build(BuildContext context) {
+    return DropdownButton<String>(
+      value: dropdownValue,
+      
+      icon: const Icon(Icons.arrow_downward),
+      elevation: 16,
+      style: const TextStyle(color: Colors.deepPurple),
+      underline: Container(
+        height: 2,
+        color: Colors.deepPurpleAccent,
+      ),
+      onChanged: (String? value) {
+        // This is called when the user selects an item.
+        setState(() {
+          dropdownValue = value!;
+          selectedoption=dropdownValue;
+        });
+      },
+      items: list.map<DropdownMenuItem<String>>((String value) {
+        return DropdownMenuItem<String>(
+          value: value,
+          child: Text(value),
+        );
+      }).toList(),
+    );
+  }
+
+}
 
 
