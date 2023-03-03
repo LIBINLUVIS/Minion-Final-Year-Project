@@ -399,17 +399,17 @@ class _HomeState extends State<Home> with WidgetsBindingObserver{
             ElevatedButton(onPressed:(){
              Navigator.push(context, MaterialPageRoute(builder: (context)=>const
              MyHomePage(title: 'Minion') ));
-            }, child: const Text("Child status",style:
+            }, child: const Text("tracking",style:
             TextStyle(fontSize:20 ),)),
             const SizedBox(height: 30,width: 30,),
             ElevatedButton(onPressed:(){
 
-            }, child: const Text("Child tracking",
+            }, child: const Text("health",
             style: TextStyle(fontSize: 20 ),)),
             const SizedBox(height: 30,width: 30,),
             ElevatedButton(onPressed:(){
 
-            }, child:const Text("Child health",style: TextStyle(fontSize: 20),))
+            }, child:const Text("live location",style: TextStyle(fontSize: 20),))
           ],
         ),
       ),
@@ -464,6 +464,26 @@ class _SettingsPageState extends State<SettingsPage> {
        await ref1.update({
       "Threshold": -55,
       
+    }).then((res)=>{
+      Fluttertoast.showToast(
+      msg: "range seted",
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+      timeInSecForIosWeb: 2,
+      backgroundColor: Colors.black,
+      textColor: Colors.white,
+      fontSize: 16.0
+    )
+    }).catchError((err)=>{
+      Fluttertoast.showToast(
+      msg: "Error - $err",
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+      timeInSecForIosWeb: 2,
+      backgroundColor: Colors.black,
+      textColor: Colors.white,
+      fontSize: 16.0
+    )
     });
      }
      if(thre_range==20){
@@ -472,7 +492,27 @@ class _SettingsPageState extends State<SettingsPage> {
        await ref1.update({
       "Threshold": -65,
       
-    });
+    }).then((res)=>{
+      Fluttertoast.showToast(
+      msg: "range seted",
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+      timeInSecForIosWeb: 2,
+      backgroundColor: Colors.black,
+      textColor: Colors.white,
+      fontSize: 16.0
+    )
+    }).catchError((err)=>{
+      Fluttertoast.showToast(
+      msg: "Error - $err",
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+      timeInSecForIosWeb: 2,
+      backgroundColor: Colors.black,
+      textColor: Colors.white,
+      fontSize: 16.0
+    )
+    });;
      }
      if(thre_range==30){
       var k=100;   
@@ -480,7 +520,27 @@ class _SettingsPageState extends State<SettingsPage> {
        await ref1.update({
       "Threshold": -90,
       
-    });
+    }).then((res)=>{
+      Fluttertoast.showToast(
+      msg: "range seted",
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+      timeInSecForIosWeb: 2,
+      backgroundColor: Colors.black,
+      textColor: Colors.white,
+      fontSize: 16.0
+    )
+    }).catchError((err)=>{
+      Fluttertoast.showToast(
+      msg: "Error - $err",
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+      timeInSecForIosWeb: 2,
+      backgroundColor: Colors.black,
+      textColor: Colors.white,
+      fontSize: 16.0
+    )
+    });;
      }
    }
   
@@ -506,12 +566,52 @@ class _SettingsPageState extends State<SettingsPage> {
     await ref1.update({
       "Threshold": -60,
       
-    });
+    }).then((res)=>{
+      Fluttertoast.showToast(
+      msg: "Indoor selected",
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+      timeInSecForIosWeb: 2,
+      backgroundColor: Colors.black,
+      textColor: Colors.white,
+      fontSize: 16.0
+    )
+    }).catchError((err)=>{
+      Fluttertoast.showToast(
+      msg: "Error - $err",
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+      timeInSecForIosWeb: 2,
+      backgroundColor: Colors.black,
+      textColor: Colors.white,
+      fontSize: 16.0
+    )
+    });;
    }
    if(res=="Outdoor Mode"){
     await ref1.update({
       "Threshold": -80,
-    });
+    }).then((res)=>{
+      Fluttertoast.showToast(
+      msg: "outdoor selected",
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+      timeInSecForIosWeb: 2,
+      backgroundColor: Colors.black,
+      textColor: Colors.white,
+      fontSize: 16.0
+    )
+    }).catchError((err)=>{
+      Fluttertoast.showToast(
+      msg: "Error - $err",
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+      timeInSecForIosWeb: 2,
+      backgroundColor: Colors.black,
+      textColor: Colors.white,
+      fontSize: 16.0
+    )
+    });;
    }
 }
   @override
