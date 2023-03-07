@@ -9,14 +9,23 @@ import 'package:flutter/src/widgets/framework.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 import 'mqtt_client.dart';
 import 'package:vibration/vibration.dart';
+import 'package:minion/db/functions/db_functions.dart';
+import 'package:minion/db/model/data_model.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:firebase_database/firebase_database.dart';
 
 
-void main() async{
+Future<void> main() async{
+
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  runApp(MyApp());
+  await Hive.initFlutter();
+  if(!Hive.isAdapterRegistered(StudentModelAdapter().typeId)){
+  Hive.registerAdapter(StudentModelAdapter());
+ }
+  getAllStudents();
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -57,7 +66,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     builder.addString("hello");
       connect().then((value) {
       client = value;
-      client.publishMessage(topic1, MqttQos.atLeastOnce, builder.payload);
+      client.publishMessage(topic1, MqttQos.atLeastOnce, builder.payload!);
       client.subscribe(topic1, MqttQos.atLeastOnce);  
       });
     
@@ -151,7 +160,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     client.logging(on: true);
     client.onConnected = onConnected;
     client.onDisconnected = onDisconnected;
-    client.onUnsubscribed = onUnsubscribed;
+   // client.onUnsubscribed = onUnsubscribed;
     client.onSubscribed = onSubscribed;
     client.onSubscribeFail = onSubscribeFail;
     client.pongCallback = pong;
@@ -173,9 +182,9 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
       client.disconnect();
     }
 
-    if (client.connectionStatus.state == MqttConnectionState.connected) {
+    if (client.connectionStatus!.state == MqttConnectionState.connected) {
       print('EMQX client connected');
-      client.updates.listen((List<MqttReceivedMessage<MqttMessage>> c) {
+      client.updates!.listen((List<MqttReceivedMessage<MqttMessage>> c) {
         final MqttPublishMessage message = c[0].payload as MqttPublishMessage;
         final payload =
         MqttPublishPayload.bytesToStringAsString(message.payload.message);
@@ -191,13 +200,13 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
 
 
 
-      client.published.listen((MqttPublishMessage message) {
+      client.published!.listen((MqttPublishMessage message) {
         print('published');
         final payload =
         MqttPublishPayload.bytesToStringAsString(message.payload.message);
 
         print(
-            'Published message: $payload to topic: ${message.variableHeader.topicName}');
+            'Published message: $payload to topic: ${message.variableHeader!.topicName}');
       });
     } else {
       print(
@@ -234,20 +243,22 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   void pong() {
     print('Ping response client callback invoked');
   }
-  void getrange(String message){
-    final builder = MqttClientPayloadBuilder();
-    builder.addString("-40");
-      connect().then((value) {
-      client = value;
-      client.publishMessage(topic1, MqttQos.atLeastOnce, builder.payload);
-      client.subscribe(topic1, MqttQos.atLeastOnce);  
-      });
-  }
+  // void getrange(String message){
+  //   final builder = MqttClientPayloadBuilder();
+  //   builder.addString("-40");
+  //     connect().then((value) {
+  //     client = value;
+  //     client.publishMessage(topic1, MqttQos.atLeastOnce, builder.payload);
+  //     client.subscribe(topic1, MqttQos.atLeastOnce);  
+  //     });
+  // }
 
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return ValueListenableBuilder(valueListenable: studentListNotifier, builder: (BuildContext ctx,List<StudentModel> studentList,Widget?child){
+
+      return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
       ),
@@ -269,10 +280,21 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
       //action code when clicked
                   Navigator.push(context, MaterialPageRoute(builder:(context)=>const SettingsPage() ));
                }
-                )
+                ),
+           
               ],
             ),
-      
+            SizedBox(height: 30,),
+            
+            // data!=null?
+            // Text(data.name,style: TextStyle(fontSize: 25),):
+            // Text("",style: TextStyle(fontSize: 25),),
+            studentList.isEmpty?
+            Text(""):
+            studentList[0].name=="10"||studentList[0].name=="20"||studentList[0].name=="30"?
+            Text('+ ${studentList[0].name}',style: TextStyle(fontSize: 25),):
+            Text(studentList[0].name,style: TextStyle(fontSize: 25),),
+
             const SizedBox(height: 20,width: 20,),
             Container(
               margin:const EdgeInsets.all(20),
@@ -335,6 +357,10 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
         ),
       ),
     );
+
+
+    });
+
   }
 }
 
@@ -399,17 +425,17 @@ class _HomeState extends State<Home> with WidgetsBindingObserver{
             ElevatedButton(onPressed:(){
              Navigator.push(context, MaterialPageRoute(builder: (context)=>const
              MyHomePage(title: 'Minion') ));
-            }, child: const Text("tracking",style:
+            }, child: const Text("Tracking",style:
             TextStyle(fontSize:20 ),)),
             const SizedBox(height: 30,width: 30,),
             ElevatedButton(onPressed:(){
 
-            }, child: const Text("health",
+            }, child: const Text("Health",
             style: TextStyle(fontSize: 20 ),)),
             const SizedBox(height: 30,width: 30,),
             ElevatedButton(onPressed:(){
 
-            }, child:const Text("live location",style: TextStyle(fontSize: 20),))
+            }, child:const Text("Live location",style: TextStyle(fontSize: 20),))
           ],
         ),
       ),
@@ -447,6 +473,8 @@ class _SettingsPageState extends State<SettingsPage> {
     }
 
    void customrangeupdate()async{
+     final _student=StudentModel(name: thre_range.toString(), age: "temp");
+     addStudent(_student);
      if(thre_range==0){
       Fluttertoast.showToast(
       msg: "Please select a value",
@@ -548,7 +576,8 @@ class _SettingsPageState extends State<SettingsPage> {
   // print(res); 
    var k=100;   
    DatabaseReference ref1 = FirebaseDatabase.instance.ref("todos/$k");
-  
+   final _student=StudentModel(name: res, age: "temp");
+   addStudent(_student);
    
    if(res==""){
       Fluttertoast.showToast(
@@ -684,13 +713,15 @@ class _SettingsPageState extends State<SettingsPage> {
 
 
 
+void d(){
 
+}
 
 //dropdown widget
 class DropdownButtonExample extends StatefulWidget {
   
   const DropdownButtonExample({super.key});
-  
+   
 
   @override
   State<DropdownButtonExample> createState() => _DropdownButtonExampleState();
@@ -702,11 +733,13 @@ class _DropdownButtonExampleState extends State<DropdownButtonExample> {
   String dropdownValue = list.first;
   
   
+  
 
   @override
   Widget build(BuildContext context) {
-    return DropdownButton<String>(
-      value: dropdownValue,
+   return ValueListenableBuilder(valueListenable: studentListNotifier, builder: (BuildContext ctx,List<StudentModel> studentList,Widget?child){
+       return DropdownButton<String>(
+       value: dropdownValue,
       
       icon: const Icon(Icons.arrow_downward),
       elevation: 16,
@@ -729,6 +762,8 @@ class _DropdownButtonExampleState extends State<DropdownButtonExample> {
         );
       }).toList(),
     );
+   });
+
   }
 
 }

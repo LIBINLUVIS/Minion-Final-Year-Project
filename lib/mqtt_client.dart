@@ -10,7 +10,7 @@ Future<MqttClient> connect() async {
   client.logging(on: true);
   client.onConnected = onConnected;
   client.onDisconnected = onDisconnected;
-  client.onUnsubscribed = onUnsubscribed;
+//  client.onUnsubscribed = onUnsubscribed;
   client.onSubscribed = onSubscribed;
   client.onSubscribeFail = onSubscribeFail;
   client.pongCallback = pong;
@@ -32,15 +32,15 @@ Future<MqttClient> connect() async {
     client.disconnect();
   }
 
-  if (client.connectionStatus.state == MqttConnectionState.connected) {
+  if (client.connectionStatus!.state == MqttConnectionState.connected) {
     // print('EMQX client connected');
-    client.updates.listen((List<MqttReceivedMessage<MqttMessage>> c) {
+    client.updates!.listen((List<MqttReceivedMessage<MqttMessage>> c) {
       final MqttPublishMessage message = c[0].payload as MqttPublishMessage;
       final payload =
       MqttPublishPayload.bytesToStringAsString(message.payload.message);
     });
 
-    client.published.listen((MqttPublishMessage message) {
+    client.published!.listen((MqttPublishMessage message) {
       // print('published');
       final payload =
       MqttPublishPayload.bytesToStringAsString(message.payload.message);
