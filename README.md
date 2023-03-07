@@ -4,7 +4,7 @@ A new Flutter project.
 
 Minion is an app that helps the parents to monitor their children.
 
-##Features
+## Features
 
 * Local thracking of child
 
