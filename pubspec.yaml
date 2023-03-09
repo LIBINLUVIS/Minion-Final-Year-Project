@@ -44,6 +44,7 @@ dependencies:
   fluttertoast: ^8.2.1
   firebase_core: ^2.7.0
   firebase_database: ^10.0.14
+  url_launcher: ^6.1.10
 
 
 dev_dependencies:

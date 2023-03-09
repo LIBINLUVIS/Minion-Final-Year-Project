@@ -7,6 +7,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 import 'mqtt_client.dart';
 import 'package:vibration/vibration.dart';
 import 'package:minion/db/functions/db_functions.dart';
@@ -14,6 +15,7 @@ import 'package:minion/db/model/data_model.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 
 Future<void> main() async{
@@ -59,18 +61,18 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   late MqttClient client;
   var topic = "minion/childsectiondata";
-  var topic1="minion/thresholdvalues";
+  
 
-  void _publish(String message) {
-    final builder = MqttClientPayloadBuilder();
-    builder.addString("hello");
-      connect().then((value) {
-      client = value;
-      client.publishMessage(topic1, MqttQos.atLeastOnce, builder.payload!);
-      client.subscribe(topic1, MqttQos.atLeastOnce);  
-      });
+  // void _publish(String message) {
+  //   final builder = MqttClientPayloadBuilder();
+  //   builder.addString("hello");
+  //     connect().then((value) {
+  //     client = value;
+  //     client.publishMessage(topic1, MqttQos.atLeastOnce, builder.payload!);
+  //     client.subscribe(topic1, MqttQos.atLeastOnce);  
+  //     });
     
-  }
+  // }
 
     @override
   initState() {
@@ -308,7 +310,8 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                         client = value;
                         client.subscribe(topic, MqttQos.atLeastOnce);
                         alert();
-                      })
+                      }),
+                      
                     },
                   ),
 
@@ -378,7 +381,7 @@ class Home extends StatefulWidget{
 
 class _HomeState extends State<Home> with WidgetsBindingObserver{
   late MqttClient client;
-  var topic = "libin123";
+  var topic = "minion/livelocation";
   @override
   initState() {
     super.initState();
@@ -434,7 +437,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver{
             style: TextStyle(fontSize: 20 ),)),
             const SizedBox(height: 30,width: 30,),
             ElevatedButton(onPressed:(){
-
+              Navigator.push(context, MaterialPageRoute(builder: (context)=>const Map()));
             }, child:const Text("Live location",style: TextStyle(fontSize: 20),))
           ],
         ),
@@ -766,6 +769,117 @@ class _DropdownButtonExampleState extends State<DropdownButtonExample> {
 
   }
 
+}
+
+void googlemap(var val)async{
+  print(val);
+  String lat="10.178164";
+  String long="76.4282693";
+  String gmapurl='https://www.google.com/maps/search/?api=1&query=$lat,$long';
+  await canLaunchUrlString(gmapurl)?launchUrlString(gmapurl):throw 'Could not open map';
+}
+
+
+ class Map extends StatefulWidget {
+  const Map({super.key});
+  
+  @override
+  State<Map> createState() => _MapState();
+}
+
+
+class _MapState extends State<Map> {
+    late MqttClient client;
+    var data='';
+    var topic='minion/livelocation';
+    Future<MqttClient> connect() async {
+    MqttServerClient client =
+    MqttServerClient.withPort('broker.emqx.io', 'flutter_client', 1883);
+    client.logging(on: true);
+    client.onConnected = onConnected;
+    client.onDisconnected = onDisconnected;
+   // client.onUnsubscribed = onUnsubscribed;
+    client.onSubscribed = onSubscribed;
+    client.onSubscribeFail = onSubscribeFail;
+    client.pongCallback = pong;
+
+    final connMess = MqttConnectMessage()
+        .withClientIdentifier("flutter_client")
+        .authenticateAs("test", "test")
+        .keepAliveFor(60)
+        .withWillTopic('willtopic')
+        .withWillMessage('My Will message')
+        .startClean()
+        .withWillQos(MqttQos.atLeastOnce);
+    client.connectionMessage = connMess;
+    try {
+      print('Connecting');
+      await client.connect();
+    } catch (e) {
+      print('Exception: $e');
+      client.disconnect();
+    }
+
+    if (client.connectionStatus!.state == MqttConnectionState.connected) {
+      print('EMQX client connected');
+      client.updates!.listen((List<MqttReceivedMessage<MqttMessage>> c) {
+        final MqttPublishMessage message = c[0].payload as MqttPublishMessage;
+        final payload =
+        MqttPublishPayload.bytesToStringAsString(message.payload.message);
+
+        print('Received message:$payload from topic: ${c[0].topic}>');
+
+        //  data=payload;
+        setState(() {
+          data=payload;
+        });
+
+      });
+
+
+
+      client.published!.listen((MqttPublishMessage message) {
+        print('published');
+        final payload =
+        MqttPublishPayload.bytesToStringAsString(message.payload.message);
+
+        print(
+            'Published message: $payload to topic: ${message.variableHeader!.topicName}');
+      });
+    } else {
+      print(
+          'EMQX client connection failed - disconnecting, status is ${client.connectionStatus}');
+      client.disconnect();
+      exit(-1);
+    }
+
+    return client;
+  }
+
+  
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Minion"),
+      ),
+      body: Center(child: Column(
+        
+        children: [
+          SizedBox(height: 30,),
+          Text("Google Map Location",style: TextStyle(fontSize: 25),),
+          SizedBox(height: 50,),
+          ElevatedButton(onPressed: (){
+          connect().then((value) {
+          client = value;
+          client.subscribe(topic, MqttQos.atLeastOnce);
+           });
+            googlemap(data);
+          }, child: Text("open google map"))
+          ],
+      ),),
+    );
+  }
 }
 
 
