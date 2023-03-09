@@ -773,6 +773,7 @@ class _DropdownButtonExampleState extends State<DropdownButtonExample> {
 
 void googlemap(var val)async{
   print(val);
+  print("heyy");
   String lat="10.178164";
   String long="76.4282693";
   String gmapurl='https://www.google.com/maps/search/?api=1&query=$lat,$long';
