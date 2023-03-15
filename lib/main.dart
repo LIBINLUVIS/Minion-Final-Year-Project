@@ -4,6 +4,7 @@ import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:minion/db/model/dataget_model.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
@@ -16,6 +17,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:url_launcher/url_launcher.dart';
+
 
 
 Future<void> main() async{
@@ -716,9 +718,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
 
 
-void d(){
 
-}
 
 //dropdown widget
 class DropdownButtonExample extends StatefulWidget {
@@ -771,16 +771,6 @@ class _DropdownButtonExampleState extends State<DropdownButtonExample> {
 
 }
 
-void googlemap(var val)async{
-  print(val);
-  print("heyy");
-  String lat="10.178164";
-  String long="76.4282693";
-  String gmapurl='https://www.google.com/maps/search/?api=1&query=$lat,$long';
-  await canLaunchUrlString(gmapurl)?launchUrlString(gmapurl):throw 'Could not open map';
-}
-
-
  class Map extends StatefulWidget {
   const Map({super.key});
   
@@ -790,74 +780,28 @@ void googlemap(var val)async{
 
 
 class _MapState extends State<Map> {
-    late MqttClient client;
-    var data='';
-    var topic='minion/livelocation';
-    Future<MqttClient> connect() async {
-    MqttServerClient client =
-    MqttServerClient.withPort('broker.emqx.io', 'flutter_client', 1883);
-    client.logging(on: true);
-    client.onConnected = onConnected;
-    client.onDisconnected = onDisconnected;
-   // client.onUnsubscribed = onUnsubscribed;
-    client.onSubscribed = onSubscribed;
-    client.onSubscribeFail = onSubscribeFail;
-    client.pongCallback = pong;
-
-    final connMess = MqttConnectMessage()
-        .withClientIdentifier("flutter_client")
-        .authenticateAs("test", "test")
-        .keepAliveFor(60)
-        .withWillTopic('willtopic')
-        .withWillMessage('My Will message')
-        .startClean()
-        .withWillQos(MqttQos.atLeastOnce);
-    client.connectionMessage = connMess;
-    try {
-      print('Connecting');
-      await client.connect();
-    } catch (e) {
-      print('Exception: $e');
-      client.disconnect();
-    }
-
-    if (client.connectionStatus!.state == MqttConnectionState.connected) {
-      print('EMQX client connected');
-      client.updates!.listen((List<MqttReceivedMessage<MqttMessage>> c) {
-        final MqttPublishMessage message = c[0].payload as MqttPublishMessage;
-        final payload =
-        MqttPublishPayload.bytesToStringAsString(message.payload.message);
-
-        print('Received message:$payload from topic: ${c[0].topic}>');
-
-        //  data=payload;
-        setState(() {
-          data=payload;
-        });
-
-      });
 
 
+ Future<void> googlemap() async{ 
 
-      client.published!.listen((MqttPublishMessage message) {
-        print('published');
-        final payload =
-        MqttPublishPayload.bytesToStringAsString(message.payload.message);
+String latval="0.0";
+String longval="0.0";
+final ref = FirebaseDatabase.instance.ref();
+final lat = await ref.child('minion/latitude').get();
+final long=await ref.child('minion/longitude').get();
+if (lat.exists && long.exists) {
+   latval=lat.value.toString();
+   longval=long.value.toString();
 
-        print(
-            'Published message: $payload to topic: ${message.variableHeader!.topicName}');
-      });
-    } else {
-      print(
-          'EMQX client connection failed - disconnecting, status is ${client.connectionStatus}');
-      client.disconnect();
-      exit(-1);
-    }
+} else {
+    print('No data available.');
+}
 
-    return client;
-  }
-
+  String gmapurl='https://www.google.com/maps/search/?api=1&query=$latval,$longval';
+  await canLaunchUrlString(gmapurl)?launchUrlString(gmapurl):throw 'Could not open map';
+}
   
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -871,11 +815,7 @@ class _MapState extends State<Map> {
           Text("Google Map Location",style: TextStyle(fontSize: 25),),
           SizedBox(height: 50,),
           ElevatedButton(onPressed: (){
-          connect().then((value) {
-          client = value;
-          client.subscribe(topic, MqttQos.atLeastOnce);
-           });
-            googlemap(data);
+          googlemap();
           }, child: Text("open google map"))
           ],
       ),),
