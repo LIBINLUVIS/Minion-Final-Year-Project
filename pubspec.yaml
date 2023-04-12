@@ -45,6 +45,7 @@ dependencies:
   firebase_core: ^2.7.0
   firebase_database: ^10.0.14
   url_launcher: ^6.1.10
+  google_fonts: ^4.0.3
 
 
 dev_dependencies:

@@ -1,4 +1,4 @@
-import 'dart:ffi';
+// import 'dart:ffi';
 import 'dart:io';
 import 'dart:async';
 import 'dart:ui';
@@ -17,6 +17,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 
 
@@ -43,7 +44,7 @@ class MyApp extends StatelessWidget {
       // ),
       theme: Theme.of(context).copyWith(
         colorScheme: Theme.of(context).colorScheme.copyWith(
-          primary: const Color(0xFF784CEF),
+          primary:Color.fromRGBO(0,5,255,100)
         ),
       ),
       home: const Home(title: 'Minion'),
@@ -64,19 +65,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   late MqttClient client;
   var topic = "minion/childsectiondata";
   
-
-  // void _publish(String message) {
-  //   final builder = MqttClientPayloadBuilder();
-  //   builder.addString("hello");
-  //     connect().then((value) {
-  //     client = value;
-  //     client.publishMessage(topic1, MqttQos.atLeastOnce, builder.payload!);
-  //     client.subscribe(topic1, MqttQos.atLeastOnce);  
-  //     });
-    
-  // }
-
-    @override
+  @override
   initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
@@ -260,6 +249,11 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+
+    var cardTextStyle=GoogleFonts.abel(
+      fontSize: 20
+    );
+
     return ValueListenableBuilder(valueListenable: studentListNotifier, builder: (BuildContext ctx,List<StudentModel> studentList,Widget?child){
 
       return Scaffold(
@@ -306,7 +300,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   ElevatedButton(
-                    child: const Text('connect',style: TextStyle(fontSize:20),),
+                    child: const Text('Connect',style: TextStyle(fontSize:20),),
                     onPressed: () => {
                       connect().then((value) {
                         client = value;
@@ -318,7 +312,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                   ),
 
                   ElevatedButton(
-                    child: const Text('disconnect',style: TextStyle(fontSize:20),),
+                    child: const Text('Disconnect',style: TextStyle(fontSize:20),),
                     onPressed: () => {
                          stopalert()
                     },
@@ -417,6 +411,8 @@ class _HomeState extends State<Home> with WidgetsBindingObserver{
     // }
   }
 
+  var textStylebtn=GoogleFonts.abel();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -427,20 +423,45 @@ class _HomeState extends State<Home> with WidgetsBindingObserver{
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            ElevatedButton(onPressed:(){
+            ElevatedButton(
+
+              style: ElevatedButton.styleFrom(
+                minimumSize: Size(50, 50),
+                textStyle: GoogleFonts.abel()
+              ),
+      //   style: ElevatedButton.styleFrom(
+      //   minimumSize: const Size.fromWidth(2000), // NEW
+      // ),
+            onPressed:(){
              Navigator.push(context, MaterialPageRoute(builder: (context)=>const
              MyHomePage(title: 'Minion') ));
-            }, child: const Text("Tracking",style:
-            TextStyle(fontSize:20 ),)),
-            const SizedBox(height: 30,width: 30,),
-            ElevatedButton(onPressed:(){
+            }, child: const Text("Local Tracking",style:
+          TextStyle(fontFamily: 'RaleWay',fontSize: 20),)),
+            // ElevatedButton(onPressed:(){
+            //  Navigator.push(context, MaterialPageRoute(builder: (context)=>const
+            //  MyHomePage(title: 'Minion') ));
+            // }, child: const Text("Local Tracking",style:TextStyle(fontSize:20))
 
-            }, child: const Text("Health",
-            style: TextStyle(fontSize: 20 ),)),
+
+            const SizedBox(height: 30,width: 30),
+            ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                minimumSize: Size(50, 50),
+                textStyle: GoogleFonts.abel()
+              ),
+            onPressed:(){
+
+            }, child: const Text("Health Monitoring",
+            style: TextStyle(fontSize: 20,height: 1.5 ),)),
             const SizedBox(height: 30,width: 30,),
-            ElevatedButton(onPressed:(){
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                minimumSize: Size(50, 50),
+                textStyle: GoogleFonts.abel()
+              ),
+            onPressed:(){
               Navigator.push(context, MaterialPageRoute(builder: (context)=>const Map()));
-            }, child:const Text("Live location",style: TextStyle(fontSize: 20),))
+            }, child:const Text("Live Location",style: TextStyle(fontSize: 20,height: 1.5,letterSpacing: 3),))
           ],
         ),
       ),
@@ -796,9 +817,14 @@ if (lat.exists && long.exists) {
 } else {
     print('No data available.');
 }
+  
+  final Uri _url = Uri.parse('https://www.google.com/maps/search/?api=1&query=$latval,$longval');
 
-  String gmapurl='https://www.google.com/maps/search/?api=1&query=$latval,$longval';
-  await canLaunchUrlString(gmapurl)?launchUrlString(gmapurl):throw 'Could not open map';
+  //String gmapurl='https://www.google.com/maps/search/?api=1&query=$latval,$longval';
+   if (!await launchUrl(_url)) {
+    throw Exception('Could not launch $_url');
+  }
+  //await canLaunchUrlString(gmapurl)?launchUrlString(gmapurl):throw 'Could not open map';
 }
   
 
@@ -816,7 +842,7 @@ if (lat.exists && long.exists) {
           SizedBox(height: 50,),
           ElevatedButton(onPressed: (){
           googlemap();
-          }, child: Text("open google map"))
+          }, child: Text("Open google map"))
           ],
       ),),
     );
