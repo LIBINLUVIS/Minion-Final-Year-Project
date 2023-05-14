@@ -871,6 +871,25 @@ class _HealthState extends State<Health> with WidgetsBindingObserver{
 
   }
 
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+
+    if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.detached) return;
+
+    final isBackground = state == AppLifecycleState.paused;
+    if(isBackground){
+      gethealthdata();
+      Timer mytimer = Timer.periodic(Duration(seconds: 5), (timer) {
+        if(abnormal_heartrate && water_detected){
+          Vibration.vibrate(duration: 1000);
+        }
+
+      });
+    }
+  }
+
   String heart_rate_value="0";
   bool water_detected=false;
   bool child_drowns=false;
