@@ -420,14 +420,16 @@ class _HomeState extends State<Home> with WidgetsBindingObserver{
         title: Text(widget.title),
       ),
       body: Center(
+        
         child: Column(
+        
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             ElevatedButton(
 
               style: ElevatedButton.styleFrom(
                 minimumSize: Size(50, 50),
-                textStyle: GoogleFonts.abel()
+                textStyle: GoogleFonts.orbitron()
               ),
       //   style: ElevatedButton.styleFrom(
       //   minimumSize: const Size.fromWidth(2000), // NEW
@@ -436,7 +438,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver{
              Navigator.push(context, MaterialPageRoute(builder: (context)=>const
              MyHomePage(title: 'Minion') ));
             }, child: const Text("Local Tracking",style:
-          TextStyle(fontFamily: 'RaleWay',fontSize: 20),)),
+          TextStyle(fontSize: 20),)),
             // ElevatedButton(onPressed:(){
             //  Navigator.push(context, MaterialPageRoute(builder: (context)=>const
             //  MyHomePage(title: 'Minion') ));
@@ -447,17 +449,18 @@ class _HomeState extends State<Home> with WidgetsBindingObserver{
             ElevatedButton(
                 style: ElevatedButton.styleFrom(
                 minimumSize: Size(50, 50),
-                textStyle: GoogleFonts.abel()
+                textStyle: GoogleFonts.orbitron()
               ),
             onPressed:(){
-
+            Navigator.push(context,MaterialPageRoute(builder: (context)=>const Health()));
             }, child: const Text("Health Monitoring",
             style: TextStyle(fontSize: 20,height: 1.5 ),)),
             const SizedBox(height: 30,width: 30,),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 minimumSize: Size(50, 50),
-                textStyle: GoogleFonts.abel()
+                textStyle: GoogleFonts.orbitron(),
+                
               ),
             onPressed:(){
               Navigator.push(context, MaterialPageRoute(builder: (context)=>const Map()));
@@ -800,7 +803,7 @@ class _DropdownButtonExampleState extends State<DropdownButtonExample> {
 }
 
 
-class _MapState extends State<Map> {
+class _MapState extends State<Map> {  
 
 
  Future<void> googlemap() async{ 
@@ -808,8 +811,8 @@ class _MapState extends State<Map> {
 String latval="0.0";
 String longval="0.0";
 final ref = FirebaseDatabase.instance.ref();
-final lat = await ref.child('minion/latitude').get();
-final long=await ref.child('minion/longitude').get();
+final lat = await ref.child('temp/latitude').get();
+final long=await ref.child('temp/longitude').get();
 if (lat.exists && long.exists) {
    latval=lat.value.toString();
    longval=long.value.toString();
@@ -845,6 +848,131 @@ if (lat.exists && long.exists) {
           }, child: Text("Open google map"))
           ],
       ),),
+    );
+  }
+}
+
+// health widget
+class Health extends StatefulWidget {
+  const Health({super.key});
+
+  @override
+  State<Health> createState() => _HealthState();
+  
+}
+
+class _HealthState extends State<Health> with WidgetsBindingObserver{
+  
+  @override
+  initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    gethealthdata();
+
+  }
+
+  String heart_rate_value="0";
+  bool water_detected=false;
+  bool child_drowns=false;
+  bool abnormal_heartrate=false;
+  var arr=[0];
+
+  void emptyarray(){
+    
+    setState(() {
+      arr[0]=0;
+      abnormal_heartrate=false;
+    });
+  }
+  void gethealthdata(){
+    
+    final ref = FirebaseDatabase.instance.ref();
+    ref.child('test').child('health').onValue.listen((event) {
+
+     String data=event.snapshot.value.toString();
+   
+     setState(() {
+       heart_rate_value=data;
+     });
+    //logic
+    if(arr!=null && arr[0]!=0){
+      int val_diff=arr[0]-int.parse(heart_rate_value);
+      print(val_diff);
+     if(val_diff<=-10){
+      
+      setState(() {
+        abnormal_heartrate=true;
+      });
+     
+     }else{
+      arr[0]=int.parse(heart_rate_value);
+     }
+    }else{ 
+      arr[0]=int.parse(heart_rate_value);
+    }
+
+    });
+
+    ref.child('water').child('statusCode').onValue.listen((event) {
+      String data=event.snapshot.value.toString();
+      if(data=="600"){
+        setState(() {
+          water_detected=true;
+        });
+      }
+    });
+    
+  }
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Minion"),
+      ),
+      body: Center(
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              
+              children: [
+                SizedBox(height: 300,),
+               Icon(
+                Icons.favorite,
+                color: Colors.red,
+                size: 50,
+               ),
+               SizedBox(width: 15,),
+               Text(heart_rate_value,style:TextStyle(fontSize: 45,color: Colors.green)),
+              ],
+              
+            ),
+              Icon(
+               Icons.child_care_rounded,
+               size: 54.0,
+              ),
+              SizedBox(height: 20,),
+              abnormal_heartrate && water_detected?
+              
+              Column(
+                children: [
+                  Text('Child drowning detected',style: TextStyle(fontSize: 30,color: Colors.red)),
+                  SizedBox(height: 20,),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                    primary: Colors.red
+                
+              ),
+                    onPressed: ()=>{
+                      emptyarray()
+                  }, child: Text('Cancel',style:TextStyle(fontSize: 15,color: Colors.white)))
+                ],
+              )
+              :
+              Text('Child is Safe',style: TextStyle(fontSize: 30,color: Colors.green),)
+          ],
+        ),
+      ),
     );
   }
 }
