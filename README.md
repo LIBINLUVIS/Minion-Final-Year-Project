@@ -6,7 +6,7 @@ Minion is an app that helps the parents to monitor their children.
 
 ## Features
 
-* Local thracking of child
+* Local tracking of child
 
 * Child health monitoring
 
