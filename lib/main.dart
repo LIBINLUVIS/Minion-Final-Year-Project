@@ -861,14 +861,41 @@ class Health extends StatefulWidget {
   
 }
 
-class _HealthState extends State<Health> with WidgetsBindingObserver{
+class _HealthState extends State<Health> with WidgetsBindingObserver,SingleTickerProviderStateMixin{
+  late Animation<double> animation;
+  late AnimationController controller;
   
+
   @override
   initState() {
     super.initState();
+ 
+    final quick = const Duration(milliseconds: 500);
+    final scaleTween = Tween(begin: 0.0, end: 1.0);
+    controller = AnimationController(duration: quick, vsync: this);
+    animation = scaleTween.animate(
+      CurvedAnimation(
+        parent: controller,
+        curve: Curves.fastLinearToSlowEaseIn,
+      ),
+    )..addListener(() {
+      
+      setState(() => scale = animation.value);
+    });
+
+        Timer mytimer = Timer.periodic(Duration(milliseconds: 1500), (timer) {
+       
+       _animate();
+      });
     WidgetsBinding.instance.addObserver(this);
     gethealthdata();
 
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
   }
 
   @override
@@ -879,7 +906,9 @@ class _HealthState extends State<Health> with WidgetsBindingObserver{
         state == AppLifecycleState.detached) return;
 
     final isBackground = state == AppLifecycleState.paused;
+    
     if(isBackground){
+     
       gethealthdata();
       Timer mytimer = Timer.periodic(Duration(seconds: 5), (timer) {
         if(abnormal_heartrate && water_detected){
@@ -888,6 +917,11 @@ class _HealthState extends State<Health> with WidgetsBindingObserver{
 
       });
     }
+
+   
+
+
+
   }
 
   String heart_rate_value="0";
@@ -903,6 +937,17 @@ class _HealthState extends State<Health> with WidgetsBindingObserver{
       abnormal_heartrate=false;
     });
   }
+
+    void _animate() {
+    animation
+    ..addStatusListener((AnimationStatus status) {
+      if (scale == 1.0) {
+        controller.reverse();
+      } 
+    });
+    controller.forward();
+  }
+
   void gethealthdata(){
     
     final ref = FirebaseDatabase.instance.ref();
@@ -942,6 +987,7 @@ class _HealthState extends State<Health> with WidgetsBindingObserver{
     });
     
   }
+  double scale = 0.0;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -956,12 +1002,17 @@ class _HealthState extends State<Health> with WidgetsBindingObserver{
               
               children: [
                 SizedBox(height: 300,),
-               Icon(
-                Icons.favorite,
-                color: Colors.red,
-                size: 50,
-               ),
+                Transform.scale(
+                  scale: scale,
+                  child: Icon(
+                    Icons.favorite,
+                    size: 80,
+                    color: Colors.red,
+                  ),
+                ),
                SizedBox(width: 15,),
+               abnormal_heartrate && water_detected?
+               Text(heart_rate_value,style:TextStyle(fontSize: 45,color: Colors.red)):
                Text(heart_rate_value,style:TextStyle(fontSize: 45,color: Colors.green)),
               ],
               
