@@ -883,7 +883,7 @@ class _HealthState extends State<Health> with WidgetsBindingObserver,SingleTicke
       setState(() => scale = animation.value);
     });
 
-        Timer mytimer = Timer.periodic(Duration(milliseconds: 1500), (timer) {
+        Timer mytimer = Timer.periodic(Duration(milliseconds: 1000), (timer) {
        
        _animate();
       });
@@ -924,7 +924,7 @@ class _HealthState extends State<Health> with WidgetsBindingObserver,SingleTicke
 
   }
 
-  String heart_rate_value="0";
+  String heart_rate_value="_ _";
   bool water_detected=false;
   bool child_drowns=false;
   bool abnormal_heartrate=false;
@@ -1006,17 +1006,33 @@ class _HealthState extends State<Health> with WidgetsBindingObserver,SingleTicke
                   scale: scale,
                   child: Icon(
                     Icons.favorite,
-                    size: 80,
+                    size: 35,
                     color: Colors.red,
                   ),
                 ),
                SizedBox(width: 15,),
                abnormal_heartrate && water_detected?
-               Text(heart_rate_value,style:TextStyle(fontSize: 45,color: Colors.red)):
-               Text(heart_rate_value,style:TextStyle(fontSize: 45,color: Colors.green)),
+               //montesarct
+               Row(
+                 children: [
+                   Text(heart_rate_value,style:TextStyle(fontSize: 45,color: Colors.red)),
+                   SizedBox(width: 20,),
+                   Text("bpm",style: TextStyle(fontSize:35),)
+                 ],
+               ):
+               Row(
+                 children: [
+                   Text(heart_rate_value,style:TextStyle(fontSize: 45,color: Colors.green)),
+                   SizedBox(width: 20,),
+                   Text("bpm",style: TextStyle(fontSize:35),)
+                 ],
+               ),
               ],
               
             ),
+            abnormal_heartrate && water_detected?
+             Icon(Icons.warning_amber,size: 54.0,)
+            :
               Icon(
                Icons.child_care_rounded,
                size: 54.0,
